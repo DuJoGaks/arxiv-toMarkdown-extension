@@ -67,7 +67,7 @@ You can install and run this project either by downloading the pre-packaged Rele
 
 ---
 
-### 3. Convert a Paper
+### Convert a Paper
 
 **From arXiv:**
 1. Visit any arXiv abstract page (e.g. `arxiv.org/abs/2301.12345`)
