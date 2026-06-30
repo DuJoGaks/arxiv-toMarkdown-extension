@@ -25,36 +25,47 @@ Extension (Chrome MV3)  <-->  Local Flask Server  <-->  marker_single CLI
 
 ## Quick Start
 
-### 1. Start the Server
+You can install and run this project either by downloading the pre-packaged Release files (recommended for general use) or by cloning the repository from source.
 
-**Windows:**
-```batch
-run.bat
-```
+---
 
-**Mac / Linux:**
-```bash
-chmod +x run.sh
-./run.sh
-```
+### Option A: Installation via GitHub Releases (Recommended)
 
-The script will:
-1. Create a Python virtual environment
-2. Install dependencies (`flask`, `flask-cors`, `requests`, `marker-pdf`)
-3. Pre-download AI models (~1.35 GB, first run only)
-4. Start the server at `http://localhost:5000`
+1. Go to the **Releases** page of this repository and download the latest version of both zip files:
+   - `arxiv-marker-extension-v*.zip` (Frontend Extension)
+   - `arxiv-marker-server-v*.zip` (Backend Server)
+2. **Setup the Server**:
+   - Extract `arxiv-marker-server-v*.zip` to a folder.
+   - **Windows**: Double-click `run.bat`.
+   - **Mac / Linux**: Open a terminal in the extracted folder, run `chmod +x run.sh && ./run.sh`.
+   - This automatically creates the virtual environment, installs dependencies, pre-downloads the AI models (~1.35 GB), and starts the server at `http://localhost:5000`.
+3. **Setup the Chrome Extension**:
+   - Extract `arxiv-marker-extension-v*.zip` to a folder.
+   - Open Chrome and navigate to `chrome://extensions`.
+   - Enable **Developer mode** (toggle in the top-right corner).
+   - Click **Load unpacked** (top-left button).
+   - Select the folder where you extracted the extension zip file.
 
-> **Custom port:** set the `PORT` environment variable before running.
-> ```bash
-> PORT=8080 ./run.sh
-> ```
+---
 
-### 2. Install the Extension
+### Option B: Run from Source Code (For Developers)
 
-1. Open `chrome://extensions` in Chrome
-2. Enable **Developer mode** (top-right toggle)
-3. Click **Load unpacked**
-4. Select the `extension/` folder
+1. Clone this repository:
+   ```bash
+   git clone https://github.com/DuJoGaks/arxiv-toMarkdown-extension.git
+   cd arxiv-toMarkdown-extension
+   ```
+2. **Start the Server**:
+   - **Windows**: Run `run.bat` in the root directory.
+   - **Mac / Linux**: Run `chmod +x run.sh && ./run.sh` in the root directory.
+   - The script will initialize a local Python virtual environment, install requirements, download the AI models (~1.35 GB), and start the server at `http://localhost:5000`.
+3. **Install the Extension**:
+   - Open Chrome and go to `chrome://extensions`.
+   - Enable **Developer mode**.
+   - Click **Load unpacked**.
+   - Select the `extension/` folder in your cloned repository directory.
+
+---
 
 ### 3. Convert a Paper
 
