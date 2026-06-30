@@ -1,0 +1,60 @@
+name: Create Release
+
+on:
+  pull_request:
+    types: [closed]
+    branches: [main]
+
+jobs:
+  release:
+    # PR이 머지된 경우에만 실행 (닫기만 한 경우 제외)
+    if: github.event.pull_request.merged == true
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Read version from manifest.json
+        id: version
+        run: |
+          VERSION=$(jq -r '.version' extension/manifest.json)
+          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+          echo "tag=v$VERSION" >> "$GITHUB_OUTPUT"
+
+      - name: Package Extension (ZIP)
+        run: |
+          cd extension
+          zip -r ../arxiv-marker-extension-v${{ steps.version.outputs.version }}.zip .
+          cd ..
+
+      - name: Package Server (ZIP)
+        run: |
+          zip -r arxiv-marker-server-v${{ steps.version.outputs.version }}.zip \
+            server/ run.sh run.bat
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ steps.version.outputs.tag }}
+          name: "Release ${{ steps.version.outputs.tag }}"
+          body: |
+            ## arXiv-Marker ${{ steps.version.outputs.tag }}
+
+            ### Downloads
+            - **Extension** - `arxiv-marker-extension-*.zip`: Chrome Extension (Load unpacked in `chrome://extensions`)
+            - **Server** - `arxiv-marker-server-*.zip`: Flask backend + setup scripts
+
+            ### Quick Start
+            1. Extract the server ZIP and run `run.bat` (Windows) or `./run.sh` (Mac/Linux)
+            2. Load the extension ZIP as unpacked extension in Chrome
+            3. Visit any arXiv paper page and click "Convert to MD"
+
+            ---
+            *Merged from PR #${{ github.event.pull_request.number }}*
+          files: |
+            arxiv-marker-extension-v${{ steps.version.outputs.version }}.zip
+            arxiv-marker-server-v${{ steps.version.outputs.version }}.zip
+          generate_release_notes: true
