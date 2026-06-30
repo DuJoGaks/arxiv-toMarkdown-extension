@@ -9,12 +9,19 @@ def main():
     print("This may take a few minutes on the first run.\n")
 
     try:
+        from marker.models import create_model_dict
         from marker.converters.pdf import PdfConverter
         from marker.config.parser import ConfigParser
 
+        print("Loading and downloading models via create_model_dict()...")
+        model_dict = create_model_dict()
+
         config_parser = ConfigParser({"output_format": "markdown"})
-        converter = PdfConverter(config=config_parser.generate_config_dict())
-        print("\nAll models are ready.")
+        converter = PdfConverter(
+            config=config_parser.generate_config_dict(),
+            artifact_dict=model_dict
+        )
+        print("\nAll models are ready and cached.")
     except Exception as e:
         print(f"\nWarning: Model pre-download encountered an issue: {e}")
         print("Models will be downloaded automatically on first conversion.")
