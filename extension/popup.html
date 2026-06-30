@@ -1,0 +1,448 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>arXiv-Marker</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <style>
+    /* ─── Reset & Base ─── */
+    *, *::before, *::after {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      width: 420px;
+      min-height: 480px;
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+      background: linear-gradient(160deg, #0a0a1a 0%, #0f0f2a 40%, #1a1035 100%);
+      color: #e2e8f0;
+      overflow-x: hidden;
+    }
+
+    /* ─── Background Effects ─── */
+    body::before {
+      content: '';
+      position: fixed;
+      top: -50%;
+      left: -50%;
+      width: 200%;
+      height: 200%;
+      background: radial-gradient(ellipse at 30% 20%, rgba(102, 126, 234, 0.08) 0%, transparent 50%),
+                  radial-gradient(ellipse at 70% 80%, rgba(118, 75, 162, 0.06) 0%, transparent 50%);
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    /* ─── Container ─── */
+    .container {
+      position: relative;
+      z-index: 1;
+      padding: 24px 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 18px;
+    }
+
+    /* ─── Header ─── */
+    .header {
+      text-align: center;
+      padding-bottom: 4px;
+    }
+
+    .header-logo {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      margin-bottom: 6px;
+    }
+
+    .header-icon {
+      width: 32px;
+      height: 32px;
+      background: linear-gradient(135deg, #667eea, #764ba2);
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 18px;
+      box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+    }
+
+    .header h1 {
+      font-size: 20px;
+      font-weight: 700;
+      background: linear-gradient(135deg, #667eea, #a78bfa, #764ba2);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      letter-spacing: -0.3px;
+    }
+
+    .header-subtitle {
+      font-size: 11px;
+      color: #64748b;
+      font-weight: 400;
+      letter-spacing: 0.5px;
+      text-transform: uppercase;
+    }
+
+    /* ─── Divider ─── */
+    .divider {
+      height: 1px;
+      background: linear-gradient(90deg, transparent, rgba(102, 126, 234, 0.3), transparent);
+    }
+
+    /* ─── Upload Area ─── */
+    .upload-area {
+      position: relative;
+      border: 2px dashed rgba(102, 126, 234, 0.3);
+      border-radius: 12px;
+      padding: 28px 20px;
+      text-align: center;
+      cursor: pointer;
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      background: rgba(255, 255, 255, 0.02);
+      backdrop-filter: blur(10px);
+    }
+
+    .upload-area:hover {
+      border-color: rgba(102, 126, 234, 0.6);
+      background: rgba(102, 126, 234, 0.05);
+      transform: translateY(-1px);
+    }
+
+    .upload-area.drag-over {
+      border-color: #667eea;
+      background: rgba(102, 126, 234, 0.1);
+      box-shadow: 0 0 20px rgba(102, 126, 234, 0.15);
+    }
+
+    .upload-area.has-file {
+      border-color: rgba(74, 222, 128, 0.5);
+      background: rgba(74, 222, 128, 0.05);
+    }
+
+    .upload-icon {
+      font-size: 36px;
+      margin-bottom: 10px;
+      display: block;
+      filter: drop-shadow(0 2px 4px rgba(0,0,0,0.2));
+    }
+
+    .upload-text {
+      font-size: 13px;
+      color: #94a3b8;
+      line-height: 1.5;
+    }
+
+    .upload-text strong {
+      color: #a78bfa;
+      font-weight: 600;
+    }
+
+    .upload-hint {
+      font-size: 10px;
+      color: #475569;
+      margin-top: 6px;
+    }
+
+    .file-name {
+      display: none;
+      margin-top: 10px;
+      padding: 8px 12px;
+      background: rgba(74, 222, 128, 0.1);
+      border-radius: 6px;
+      font-size: 12px;
+      color: #4ade80;
+      font-family: 'JetBrains Mono', monospace;
+      word-break: break-all;
+    }
+
+    .file-name.visible {
+      display: block;
+      animation: fadeIn 0.3s ease;
+    }
+
+    #file-input {
+      display: none;
+    }
+
+    /* ─── Convert Button ─── */
+    .convert-btn {
+      width: 100%;
+      padding: 13px 20px;
+      border: none;
+      border-radius: 10px;
+      font-family: 'Inter', sans-serif;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      letter-spacing: 0.3px;
+      position: relative;
+      overflow: hidden;
+      box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+    }
+
+    .convert-btn::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: -100%;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(90deg, transparent, rgba(255,255,255,0.1), transparent);
+      transition: left 0.5s ease;
+    }
+
+    .convert-btn:hover:not(:disabled)::before {
+      left: 100%;
+    }
+
+    .convert-btn:hover:not(:disabled) {
+      transform: translateY(-1px);
+      box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
+    }
+
+    .convert-btn:active:not(:disabled) {
+      transform: translateY(0);
+      box-shadow: 0 2px 10px rgba(102, 126, 234, 0.3);
+    }
+
+    .convert-btn:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+      background: linear-gradient(135deg, #475569 0%, #334155 100%);
+      box-shadow: none;
+    }
+
+    .convert-btn.converting {
+      background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+      box-shadow: 0 4px 15px rgba(245, 158, 11, 0.3);
+      cursor: wait;
+    }
+
+    /* ─── Terminal Log ─── */
+    .terminal-wrapper {
+      display: none;
+      flex-direction: column;
+      gap: 0;
+      animation: fadeIn 0.3s ease;
+    }
+
+    .terminal-wrapper.visible {
+      display: flex;
+    }
+
+    .terminal-header {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 12px;
+      background: #1a1a2e;
+      border-radius: 10px 10px 0 0;
+      border: 1px solid rgba(255, 255, 255, 0.06);
+      border-bottom: none;
+    }
+
+    .terminal-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+    }
+
+    .terminal-dot.red    { background: #ef4444; }
+    .terminal-dot.yellow { background: #f59e0b; }
+    .terminal-dot.green  { background: #22c55e; }
+
+    .terminal-title {
+      font-size: 10px;
+      color: #64748b;
+      font-family: 'JetBrains Mono', monospace;
+      margin-left: 4px;
+    }
+
+    .terminal-log {
+      padding: 14px 14px;
+      background: #0a0a14;
+      border-radius: 0 0 10px 10px;
+      border: 1px solid rgba(255, 255, 255, 0.06);
+      border-top: none;
+      font-family: 'JetBrains Mono', 'Fira Code', 'Consolas', monospace;
+      font-size: 11px;
+      line-height: 1.6;
+      color: #4ade80;
+      max-height: 200px;
+      min-height: 80px;
+      overflow-y: auto;
+      white-space: pre-wrap;
+      word-break: break-word;
+      scrollbar-width: thin;
+      scrollbar-color: rgba(74, 222, 128, 0.2) transparent;
+    }
+
+    .terminal-log::-webkit-scrollbar {
+      width: 4px;
+    }
+
+    .terminal-log::-webkit-scrollbar-track {
+      background: transparent;
+    }
+
+    .terminal-log::-webkit-scrollbar-thumb {
+      background: rgba(74, 222, 128, 0.25);
+      border-radius: 2px;
+    }
+
+    /* ─── Status Bar ─── */
+    .status-bar {
+      display: none;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 12px;
+      background: rgba(255, 255, 255, 0.03);
+      border-radius: 8px;
+      font-size: 11px;
+      color: #64748b;
+    }
+
+    .status-bar.visible {
+      display: flex;
+      animation: fadeIn 0.3s ease;
+    }
+
+    .status-indicator {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: #64748b;
+      flex-shrink: 0;
+    }
+
+    .status-indicator.active {
+      background: #4ade80;
+      box-shadow: 0 0 8px rgba(74, 222, 128, 0.5);
+      animation: pulse 1.5s ease-in-out infinite;
+    }
+
+    .status-indicator.error {
+      background: #ef4444;
+      box-shadow: 0 0 8px rgba(239, 68, 68, 0.5);
+    }
+
+    .status-indicator.done {
+      background: #4ade80;
+      box-shadow: 0 0 8px rgba(74, 222, 128, 0.5);
+    }
+
+    /* ─── Footer ─── */
+    .footer {
+      text-align: center;
+      font-size: 10px;
+      color: #334155;
+      padding-top: 4px;
+    }
+
+    .footer a {
+      color: #475569;
+      text-decoration: none;
+      transition: color 0.2s;
+    }
+
+    .footer a:hover {
+      color: #667eea;
+    }
+
+    /* ─── Animations ─── */
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(5px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50%      { opacity: 0.4; }
+    }
+
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+
+    .spinner {
+      display: inline-block;
+      width: 14px;
+      height: 14px;
+      border: 2px solid rgba(255,255,255,0.2);
+      border-top-color: white;
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+      vertical-align: middle;
+      margin-right: 6px;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+
+    <!-- Header -->
+    <div class="header">
+      <div class="header-logo">
+        <div class="header-icon">🔬</div>
+        <h1>arXiv-Marker</h1>
+      </div>
+      <div class="header-subtitle">PDF → Markdown Converter</div>
+    </div>
+
+    <div class="divider"></div>
+
+    <!-- Upload Area -->
+    <div class="upload-area" id="upload-area">
+      <span class="upload-icon">📄</span>
+      <div class="upload-text">
+        <strong>클릭</strong>하거나 PDF 파일을 여기에 <strong>드래그</strong>하세요
+      </div>
+      <div class="upload-hint">Supported: .pdf files only</div>
+      <input type="file" id="file-input" accept=".pdf">
+      <div class="file-name" id="file-name"></div>
+    </div>
+
+    <!-- Convert Button -->
+    <button class="convert-btn" id="convert-btn" disabled>
+      🚀 Convert to Markdown
+    </button>
+
+    <!-- Terminal Log -->
+    <div class="terminal-wrapper" id="terminal-wrapper">
+      <div class="terminal-header">
+        <span class="terminal-dot red"></span>
+        <span class="terminal-dot yellow"></span>
+        <span class="terminal-dot green"></span>
+        <span class="terminal-title">marker_single — conversion log</span>
+      </div>
+      <div class="terminal-log" id="terminal-log"></div>
+    </div>
+
+    <!-- Status Bar -->
+    <div class="status-bar" id="status-bar">
+      <span class="status-indicator" id="status-indicator"></span>
+      <span id="status-text">Ready</span>
+    </div>
+
+    <!-- Footer -->
+    <div class="footer">
+      Powered by <a href="https://github.com/VikParuchuri/marker" target="_blank" rel="noopener">marker-pdf</a>
+    </div>
+
+  </div>
+
+  <script src="popup.js"></script>
+</body>
+</html>
